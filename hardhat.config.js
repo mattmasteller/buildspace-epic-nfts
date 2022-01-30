@@ -25,4 +25,10 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY_1],
     },
   },
+  paths: {
+    sources: './ethereum/contracts',
+    tests: './ethereum/test',
+    cache: './ethereum/cache',
+    artifacts: './ethereum/artifacts',
+  },
 }
