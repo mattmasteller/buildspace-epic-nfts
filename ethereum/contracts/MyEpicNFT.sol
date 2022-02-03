@@ -18,22 +18,26 @@ contract MyEpicNFT is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
-    // Base SVG.
-    string baseSvg =
-        "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 350 350'><style>.base { fill: white; font-family: serif; font-size: 24px; }</style><rect width='100%' height='100%' fill='black' /><text x='50%' y='50%' class='base' dominant-baseline='middle' text-anchor='middle'>";
+    // Number limit
+    uint256 maxNFTCount = 50;
 
+    // Split the SVG at the part where it asks for the background color.
+    string svgPartOne = "<svg xmlns='http://www.w3.org/2000/svg' preserveAspectRatio='xMinYMin meet' viewBox='0 0 350 350'><style>.base { fill: white; font-family: serif; font-size: 24px; }</style><rect width='100%' height='100%' fill='";
+    string svgPartTwo = "'/><text x='50%' y='50%' class='base' dominant-baseline='middle' text-anchor='middle'>";
+    
     // Random words.
     string[] firstWords = [
-        "Red",
-        "Blue",
-        "Green",
-        "Yellow",
-        "Purple",
-        "Brown",
-        "Aqua",
-        "Magenta",
-        "Black",
-        "White"
+        "Angry",
+        "Envious",
+        "Disgusted",
+        "Horrified",
+        "Nervous",
+        "Cheerful",
+        "Content",
+        "Optimistic",
+        "Sad",
+        "Disappoionted",
+        "Surprised"
     ];
     string[] secondWords = [
         "Anchovy",
@@ -59,10 +63,18 @@ contract MyEpicNFT is ERC721URIStorage {
         "Swimsuit",
         "Towel"
     ];
+    string[] colors = ["#07c8f9", "#09a6f3", "#0a85ed", "#0c63e7", "#0d41e1"];
+
+    // NFT Created Event
+    event NewEpicNFTMinted(address sender, uint256 tokenId);
 
     // Pass name of NFTs token and its symbol.
     constructor() ERC721("SquareNFT", "SQUARE") {
         console.log("This is my NFT contract. Whoa!");
+    }
+
+    function getTotalNFTsMintedSoFar() public view returns (uint256) {
+        return _tokenIds.current();
     }
 
     function random(string memory input) internal pure returns (uint256) {
@@ -107,10 +119,24 @@ contract MyEpicNFT is ERC721URIStorage {
         return thirdWords[rand];
     }
 
+    function pickRandomColor(uint256 tokenId)
+        public
+        view
+        returns (string memory)
+    {
+        uint256 rand = random(
+            string(abi.encodePacked("COLOR", Strings.toString(tokenId)))
+        );
+        rand = rand % colors.length;
+        return colors[rand];
+    }
+
     // A function our user will hit to get their NFT
     function makeAnEpicNFT() public {
         // Get the current tokenId, this starts at 0.
         uint256 newItemId = _tokenIds.current();
+
+        require(newItemId < 50, "Sorry! Collection limited to 50 NFTs. :(");
 
         // Randomly grab one word from each of the three arrays.
         string memory first = pickRandomFirstWord(newItemId);
@@ -120,10 +146,11 @@ contract MyEpicNFT is ERC721URIStorage {
             abi.encodePacked(first, second, third)
         );
 
+        // Add random color
+        string memory randomColor = pickRandomColor(newItemId);
+
         // Concatenate it all together, then close the <text> and <svg> tags.
-        string memory finalSvg = string(
-            abi.encodePacked(baseSvg, combinedWord, "</text></svg>")
-        );
+        string memory finalSvg = string(abi.encodePacked(svgPartOne, randomColor, svgPartTwo, combinedWord, "</text></svg>"));
 
         // Get all the JSON metadata in place and base64 encode it.
         string memory json = Base64.encode(
@@ -171,5 +198,10 @@ contract MyEpicNFT is ERC721URIStorage {
             newItemId,
             msg.sender
         );
+
+        console.log("Number minted: ", _tokenIds.current());
+
+        // Emit NFT Created Event
+        emit NewEpicNFTMinted(msg.sender, newItemId);
     }
 }

@@ -1,3 +1,5 @@
+// yarn hardhat run ethereum/scripts/run.js
+
 const main = async () => {
   // Deploy contract.
   const contractFactory = await hre.ethers.getContractFactory('MyEpicNFT')
@@ -7,10 +9,15 @@ const main = async () => {
 
   // Call the function.
   let txn = await contract.makeAnEpicNFT()
-  // Wait for it to be mined. 
+  // Wait for it to be mined.
   await txn.wait()
 
-  // Mint another NFT for fun. 
+  // Mint another NFT for fun.
+  txn = await contract.makeAnEpicNFT()
+  // Wait for it to be mined.
+  await txn.wait()
+
+  // Mint another NFT for fun.
   txn = await contract.makeAnEpicNFT()
   // Wait for it to be mined.
   await txn.wait()

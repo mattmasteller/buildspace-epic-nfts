@@ -14,13 +14,25 @@ import { MoonIcon, SunIcon } from '@chakra-ui/icons'
 import { IconButton } from '@chakra-ui/button'
 
 import Footer from '../components/footer'
+import { ethers } from 'ethers'
 
-const OPENSEA_LINK = ''
+import abi from '../utils/MyEpicNFT.json'
+
+const OPENSEA_BASE_URL = 'https://testnets.opensea.io/assets/'
+const RARIBLE_BASE_URL = 'https://rinkeby.rarible.com/token/'
 const TOTAL_MINT_COUNT = 50
+
+const providerUrl = process.env.NEXT_PUBLIC_NETWORK_URL
+const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
+const contractABI = abi.abi
 
 const HomePage = () => {
   const { colorMode, toggleColorMode } = useColorMode()
   const [currentAccount, setCurrentAccount] = useState('')
+  const [isMining, setIsMining] = useState(false)
+  const [nftCount, setNftCount] = useState(undefined)
+  const [openSeaUrl, setOpenSeaUrl] = useState(undefined)
+  const [raribleUrl, setRaribleUrl] = useState(undefined)
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window
@@ -33,6 +45,13 @@ const HomePage = () => {
       console.log('We have the ethereum object', ethereum)
     }
 
+    // Verify network
+    const chainId = await ethereum.request({ method: 'eth_chainId' })
+    console.log(`Connected to chain ${chainId}`)
+    const rinkebyChainId = '0x4'
+    if (chainId !== rinkebyChainId)
+      alert('You are not connected to the Rinkeby Test Network!')
+
     // Check if we're authorized to access user's wallet
     const accounts = await ethereum.request({ method: 'eth_accounts' })
 
@@ -42,6 +61,10 @@ const HomePage = () => {
       const account = accounts[0]
       console.log('Found an authorized account:', account)
       setCurrentAccount(account)
+
+      // Setup listener! This is for the case where a user comes to our site
+      // and ALREADY had their wallet connected + authorized.
+      setupEventListener()
     } else {
       console.log('No authorized account found')
     }
@@ -57,17 +80,111 @@ const HomePage = () => {
         return
       }
 
+      // Verify network
+      const chainId = await ethereum.request({ method: 'eth_chainId' })
+      console.log(`Connected to chain ${chainId}`)
+      const rinkebyChainId = '0x4'
+      if (chainId !== rinkebyChainId)
+        alert('You are not connected to the Rinkeby Test Network!')
+
       // Request access to account
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' })
 
       // Set authorized account (first one)
       console.log('Connected to account', accounts[0])
       setCurrentAccount(accounts[0])
+
+      // Setup listener! This is for the case where a user comes to our site
+      // and connected their wallet for the first time.
+      setupEventListener()
     } catch (error) {}
+  }
+
+  const fetchNftCount = async () => {
+    const provider = new ethers.providers.JsonRpcProvider(providerUrl)
+    const contract = new ethers.Contract(contractAddress, contractABI, provider)
+    const nftCount = await contract.getTotalNFTsMintedSoFar()
+    console.log('nftCount', nftCount.toNumber())
+    setNftCount(nftCount)
+  }
+
+  // Setup listener
+  const setupEventListener = async () => {
+    try {
+      const { ethereum } = window
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum)
+        const signer = provider.getSigner()
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        )
+
+        // Capture event when contract throws it
+        contract.on('NewEpicNFTMinted', (from, tokenId) => {
+          console.log(from, tokenId.toNumber())
+
+          setOpenSeaUrl(
+            `${OPENSEA_BASE_URL}${contractAddress}/${tokenId.toNumber()}`
+          )
+          setRaribleUrl(
+            `${RARIBLE_BASE_URL}${contractAddress}:${tokenId.toNumber()}`
+          )
+        })
+
+        console.log('Setup event listener')
+      } else {
+        console.log('Ethereum object does not exist')
+      }
+    } catch (error) {}
+  }
+
+  // Mint NFT
+  const askContractToMintNft = async () => {
+    try {
+      const { ethereum } = window
+
+      if (ethereum) {
+        const provider = new ethers.providers.Web3Provider(ethereum)
+        const signer = provider.getSigner()
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        )
+
+        // Set UI elements
+        setIsMining(true)
+        setOpenSeaUrl(undefined)
+        setRaribleUrl(undefined)
+
+        try {
+          // Execute mint operation on contract
+          console.log('Going to pop wallet now to pay gas')
+          const txn = await contract.makeAnEpicNFT()
+          await txn.wait()
+          console.log(
+            `Mined, see transaction: https://rinkeby.etherscan.io/tx/${txn.hash}`
+          )
+          fetchNftCount()
+        } catch (error) {
+          console.log('minting error', error)
+        }
+      } else {
+        console.log('Ethereum object does not exist!')
+      }
+
+      setIsMining(false)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   useEffect(() => {
     checkIfWalletIsConnected()
+    fetchNftCount()
   }, [])
 
   const ConnectToWalletButton = () => (
@@ -85,8 +202,11 @@ const HomePage = () => {
     </Button>
   )
 
-  const MintNftButton = () => (
+  const MintNftButton = ({ isMining }) => (
     <Button
+      isDisabled={nftCount >= TOTAL_MINT_COUNT}
+      isLoading={isMining}
+      loadingText="Mining"
       colorScheme={'green'}
       bg={'green.400'}
       rounded={'full'}
@@ -94,10 +214,26 @@ const HomePage = () => {
       _hover={{
         bg: 'green.500',
       }}
-      onClick={null}
+      onClick={askContractToMintNft}
     >
-      Mint NFT
+      Mint New NFT
     </Button>
+  )
+
+  const ViewNftButton = ({ marketplace, url }) => (
+    <a href={url} target="_blank">
+      <Button
+        colorScheme={'green'}
+        bg={'green.400'}
+        rounded={'full'}
+        px={6}
+        _hover={{
+          bg: 'green.500',
+        }}
+      >
+        View on {marketplace}
+      </Button>
+    </a>
   )
 
   return (
@@ -143,9 +279,50 @@ const HomePage = () => {
             {currentAccount === '' ? (
               <ConnectToWalletButton />
             ) : (
-              <MintNftButton />
+              <MintNftButton isMining={isMining} />
             )}
           </Stack>
+          {nftCount < TOTAL_MINT_COUNT && (
+            <Text
+              pt={6}
+              px={8}
+              fontSize={{ sm: 'xl', md: '2xl' }}
+              color={'gray.500'}
+            >{`${nftCount} of ${TOTAL_MINT_COUNT} minted.`}</Text>
+          )}
+          {nftCount >= TOTAL_MINT_COUNT && (
+            <Heading pt={12}>Sorry! The NFT's are all minted. ☹️</Heading>
+          )}
+          {(openSeaUrl || raribleUrl) && (
+            <>
+              <Heading pt={24}>
+                <Text as={'span'} color={'green.400'}>
+                  Congrats!!
+                </Text>{' '}
+                <br />
+                Go check out your new NFT.
+              </Heading>
+              <Stack
+                pt={6}
+                direction={'row'}
+                spacing={3}
+                align={'center'}
+                alignSelf={'center'}
+                position={'relative'}
+              >
+                {openSeaUrl && (
+                  <ViewNftButton marketplace="OpenSea" url={openSeaUrl} />
+                )}
+                {raribleUrl && (
+                  <ViewNftButton marketplace="Rarible" url={raribleUrl} />
+                )}
+              </Stack>
+              <Text color={'gray'}>
+                Note: it can take several minutes for your NFT to show up in the
+                marketplaces.
+              </Text>
+            </>
+          )}
         </Stack>
         {/* Footer */}
         <Footer />

@@ -8,11 +8,11 @@ const main = async () => {
   await contract.deployed()
   console.log('Contract deployed to:', contract.address)
 
-  // Call the function.
-  let txn = await contract.makeAnEpicNFT()
-  // Wait for it to be mined. 
-  await txn.wait()
-  console.log('Minted NFT #1')
+  // // Call the function.
+  // let txn = await contract.makeAnEpicNFT()
+  // // Wait for it to be mined. 
+  // await txn.wait()
+  // console.log('Minted NFT #1')
 
   // // Mint another NFT for fun. 
   // txn = await contract.makeAnEpicNFT()
