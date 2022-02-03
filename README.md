@@ -32,8 +32,8 @@ If you're a developer curious about NFTs, this is perfect. Programmatically gene
 
 ### DApp Hosted on Vercel
 
-<https://waveportal-web3.vercel.app/>
+<https://buildspace-epic-nfts-chi.vercel.app/>
 
 ### Waveportal Contract Address (Rinkeby)
 
-[0xE3deB7DB28AfC1141BC8194e309521EeCD41432D](https://rinkeby.etherscan.io/address/0xE3deB7DB28AfC1141BC8194e309521EeCD41432D)
+[0x74ebA8feCbB792E9770d6fcF185ab48e30c577B9](https://rinkeby.etherscan.io/address/0x74ebA8feCbB792E9770d6fcF185ab48e30c577B9)
