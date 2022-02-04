@@ -189,6 +189,7 @@ const HomePage = () => {
 
   const ConnectToWalletButton = () => (
     <Button
+      size="lg"
       colorScheme={'green'}
       bg={'green.400'}
       rounded={'full'}
@@ -207,6 +208,7 @@ const HomePage = () => {
       isDisabled={nftCount >= TOTAL_MINT_COUNT}
       isLoading={isMining}
       loadingText="Mining"
+      size="lg"
       colorScheme={'green'}
       bg={'green.400'}
       rounded={'full'}
@@ -223,6 +225,7 @@ const HomePage = () => {
   const ViewNftButton = ({ marketplace, url }) => (
     <a href={url} target="_blank">
       <Button
+        size="lg"
         colorScheme={'green'}
         bg={'green.400'}
         rounded={'full'}
@@ -232,6 +235,26 @@ const HomePage = () => {
         }}
       >
         View on {marketplace}
+      </Button>
+    </a>
+  )
+
+  const ViewCollectionButton = () => (
+    <a
+      href="https://rinkeby.rarible.com/collection/0x80b718A38CA4Bfc0eCa023A65d0599D9c9d5E73C/items"
+      target="_blank"
+    >
+      <Button
+        size="lg"
+        colorScheme={'green'}
+        bg={'green.400'}
+        rounded={'full'}
+        px={6}
+        _hover={{
+          bg: 'green.500',
+        }}
+      >
+        View Collection
       </Button>
     </a>
   )
@@ -281,6 +304,7 @@ const HomePage = () => {
             ) : (
               <MintNftButton isMining={isMining} />
             )}
+            <ViewCollectionButton />
           </Stack>
           {nftCount < TOTAL_MINT_COUNT && (
             <Text
@@ -295,7 +319,11 @@ const HomePage = () => {
           )}
           {(openSeaUrl || raribleUrl) && (
             <>
-              <Heading pt={24}>
+              <Heading
+                pt={24}
+                fontSize={{ base: '2xl', sm: '3xl', md: '5xl' }}
+                lineHeight={'110%'}
+              >
                 <Text as={'span'} color={'green.400'}>
                   Congrats!!
                 </Text>{' '}
