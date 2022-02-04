@@ -63,7 +63,7 @@ contract MyEpicNFT is ERC721URIStorage {
         "Swimsuit",
         "Towel"
     ];
-    string[] colors = ["#BF6374", "#7682A6", "#F2B872", "#F28B50", "#F26F63"];
+    string[] colors = ["#155666", "#77D3EA", "#30C1E6", "#54666B", "#2697B3"];
 
     // NFT Created Event
     event NewEpicNFTMinted(address sender, uint256 tokenId);
