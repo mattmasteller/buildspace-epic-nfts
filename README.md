@@ -36,4 +36,4 @@ If you're a developer curious about NFTs, this is perfect. Programmatically gene
 
 ### Waveportal Contract Address (Rinkeby)
 
-[0x80b718A38CA4Bfc0eCa023A65d0599D9c9d5E73C](https://rinkeby.etherscan.io/address/0x80b718A38CA4Bfc0eCa023A65d0599D9c9d5E73C)
+[0x730909E3a43C471EC48706E1d226d48AF14a8883](https://rinkeby.etherscan.io/address/0x730909E3a43C471EC48706E1d226d48AF14a8883)

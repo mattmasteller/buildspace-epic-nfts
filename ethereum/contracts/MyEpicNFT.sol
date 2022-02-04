@@ -36,7 +36,7 @@ contract MyEpicNFT is ERC721URIStorage {
         "Content",
         "Optimistic",
         "Sad",
-        "Disappoionted",
+        "Disappointed",
         "Surprised"
     ];
     string[] secondWords = [
